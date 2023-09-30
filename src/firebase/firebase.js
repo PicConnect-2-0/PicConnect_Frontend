@@ -6,13 +6,13 @@ import { useDispatch } from "react-redux";
 import { getStorage } from "firebase/storage";
 //web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyC6vRLOnoMHmVJlz7xqh3XV01J2PP4wuBM",
-  authDomain: "ttp-capstone-social-media.firebaseapp.com",
-  projectId: "ttp-capstone-social-media",
-  storageBucket: "ttp-capstone-social-media.appspot.com",
-  messagingSenderId: "95747587283",
-  appId: "1:95747587283:web:1f9f2ec97412749d2b6826",
-  measurementId: "G-FJSP2Y5T1F",
+  apiKey: process.env.WEB_API_KEY,
+  authDomain: process.env.AUTH_DOMAIN,
+  projectId: process.env.PROJECT_ID,
+  storageBucket: process.env.STORAGE_BUCKET,
+  messagingSenderId: process.env.MESSAGING_SENDER_ID,
+  appId: process.env.API_ID ,
+  measurementId: process.env.MEASUREMENT_ID,
 };
 
 // Initialize Firebase
