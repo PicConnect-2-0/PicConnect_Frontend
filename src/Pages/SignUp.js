@@ -23,9 +23,7 @@ export default function SignUp() {
   const[errorMessage, setErrorMessage] = useState(false);
   const user = useSelector((state) => state.user.value);
 
-  if (user.id) {
-    navigate.push("/Profile");
-  }
+  
   // console.log(auth && auth.currentUser && auth.currentUser.uid);
 
   const handleNameChange = (event) => {
