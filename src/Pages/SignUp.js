@@ -43,7 +43,7 @@ export default function SignUp() {
     setPasswordVerification(event.target.value);
   };
   //when sign button is click call this function
-  const handleSubmit = async (event) => {
+  const handleSignUp = async (event) => {
     event.preventDefault();
 
     if (password !== passwordVerification) {
@@ -77,11 +77,22 @@ export default function SignUp() {
       //Display this error in UI later
     }
   };
+
+  //function to handle sign in with google or facebook
+  const handleSignUpWithProvider = async (signInMethod) => {
+    try {
+      await signInMethod(dispatch); //try to sign in with google
+      navigate("/Profile"); // If sign in is successful, navigate to the profile page
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
+  };
+
   return (
     <div className=" h-screen">
       <h1 className="text-4xl p-5">Register User</h1>
       <div className="flex justify-center">
-        <form onSubmit={handleSubmit} className="flex flex-col w-1/2">
+        <form onSubmit={handleSignUp} className="flex flex-col w-1/2">
           <Input
             type="text"
             value={name}
@@ -126,14 +137,14 @@ export default function SignUp() {
             Sign Up
           </button>
           <button
-            onClick={() => signInWithGoogle()}
+            onClick={() => handleSignUpWithProvider(signInWithGoogle)}
             className="w-full h-10 mt-10 bg-black text-white"
           >
             Continue with Google
           </button>
 
           <button
-            onClick={() => signInWithFacebook()}
+            onClick={() => handleSignUpWithProvider(signInWithFacebook)}
             className="w-full h-10 mt-10 bg-black text-white"
           >
             Continue with Facebook
