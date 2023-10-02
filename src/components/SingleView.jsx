@@ -231,8 +231,9 @@ const SingleView = ({ postcard, userId, postId }) => {
                           <div className="flex items-start space-x-4">
                             <div onClick={navigateToProfile}>
                               <img
-                                src={postcard.user?.profilePicUrl}
+                                src={postcard.user?.profilePicUrl? postcard.user?.profilePicUrl : 'https://github.com/PicConnect-2-0/PicConnect_Frontend/assets/72886722/9b5ad788-80f6-4d97-94fd-5ea6a6fc56c8'}
                                 alt={postcard.user?.name}
+                                loading="lazy"
                                 className="w-7 h-7 rounded-full cursor-pointer"
                               />
                             </div>
