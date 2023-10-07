@@ -33,15 +33,6 @@ export default function ProfilePhoto( {userId} ) {
   }, []);
 
 
-
-  const handleFollowingClick = () => {
-    navigate(`/Following/${auth.currentUser?.uid}`); // add variable userId
-  };
-
-  const handleFollowerClick = () => {
-    navigate(`/Follower/${auth.currentUser?.uid}`); // add variable userId
-  };
-
   const [textColorPhotos, setTextColorPhotos] = useState("text-gray-400"); // set initial color to greyish
   const [textColorLikes, setTextColorLikes] = useState("text-gray-400"); // set initial color to greyish
 
@@ -61,7 +52,7 @@ export default function ProfilePhoto( {userId} ) {
     <div className="userProfileContainer">
       {/* <div className="flex flex-row justify-center"> */}
       <div>
-          <div className="relative w-48 h-48 overflow-hidden rounded-full mx-auto">
+          <div className="relative w-48 h-48 overflow-hidden rounded-full mx-auto mt-5">
             <img
               src={imageUrl}
               alt="User"
