@@ -6,7 +6,7 @@ const SingleFollowerComponent = ({data, currentUserId, fetchFollowerList}) => {
   const removeFollower = (() => {
     if(data){
       try {
-        axios.delete(`http://localhost:8000/api/users/${currentUserId}/deleteFollower/${followerUserId}`)
+        axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/users/${currentUserId}/deleteFollower/${followerUserId}`)
         .then(() => {
           fetchFollowerList();
         }).catch(() => {
