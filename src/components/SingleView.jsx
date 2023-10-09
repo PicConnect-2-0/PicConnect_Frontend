@@ -40,8 +40,6 @@ const SingleView = ({ postcard, userId, postId }) => {
   const [currentComment, setCurrentComment] = useState(""); // state to hold current comment input
   const [loadingComment, setLoadinComment] = useState(true);
   const [currentReply, setCurrentReply] = useState("");
-  const [deletionOccured, setDeletionOccured] = useState(false);
-  const [parentCommentAdded, setparentCommentAdded] = useState(false);
 
   useEffect(() => {
     slides.current.forEach((slide, index) => {
@@ -93,18 +91,19 @@ const SingleView = ({ postcard, userId, postId }) => {
       //event listener for existing comments
       socket.on("existingComments", (existingComments) => {
         setLoadinComment(false);
-        console.log(`Existing comments received: `, ...existingComments);
+        //console.log(`Existing comments received: `, ...existingComments);
         setComments(existingComments);
       });
       console.log("list ins comme", comments);
     }
+    
 
     // return () => {
     //   console.log("Disconnecting socket...");
     //   socket.off('newComment'); // Remove the event listener
     //   socket.disconnect(); // Disconnect the socket
     // }
-  }, [postId, currentReply, deletionOccured, parentCommentAdded]);
+  }, []);
 
   const RedirectMessage = useIfNotAuthenticated("SingleView");
   if (RedirectMessage) {
@@ -118,7 +117,7 @@ const SingleView = ({ postcard, userId, postId }) => {
 
   // function to handle new comment submission
   const handleNewComment = (event) => {
-    console.log("posted a comment ..", currentComment);
+    console.log("posted a comment ..", currentUser.uid);
     event.preventDefault();
     const newCommentData = {
       roomId: postId,
@@ -128,7 +127,6 @@ const SingleView = ({ postcard, userId, postId }) => {
     socket.emit("newComment", newCommentData);
     console.log(`New comment submitted: ${JSON.stringify(newCommentData)}`);
     setCurrentComment(""); // clear the input field
-    setparentCommentAdded((prev) => !prev);
   };
 
   const handleCommentChange = (event) => {
@@ -138,15 +136,15 @@ const SingleView = ({ postcard, userId, postId }) => {
   // function to handle  deletion of comments
   const handleDeleteComment = (event, commentId) => {
     event.preventDefault();
+    console.log("deleting acomment")
     socket.emit("deleteComment", commentId);
-    setDeletionOccured((prev) => !prev);
+    setComments((prevComments) => prevComments.filter(comment => comment.id !== commentId));
     console.log(`the comment with id: ${commentId} was deleted`);
   };
   // function to handle  deletion of comments
   const handleDeleteReply = (event, replyId) => {
     event.preventDefault();
     socket.emit("deleteReply", replyId);
-    setDeletionOccured((prev) => !prev);
     console.log(`the comment with id: ${replyId} was deleted`);
   };
 
