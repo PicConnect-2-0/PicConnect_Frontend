@@ -7,6 +7,7 @@ import { useIfNotAuthenticated } from "../hooks/useIfNotAuthenticated";
 import TomTomMap from "./TomTomMap";
 import CommentList from "./Comments/CommentList";
 import CommentForm from "./Comments/CommentForm";
+import { auth } from "../firebase/firebase";
 
 let socket = null;
 
@@ -16,7 +17,7 @@ const SingleView = ({ postcard, userId, postId }) => {
   const [loop, setLoop] = useState(0);
   const slides = useRef([]);
   const slideSayisi = slides.current.length;
-  const currentUser = useSelector((state) => state.user.value);
+  const currentUser = auth.currentUser;
   const post = useSelector((state) => state.posts.currentPost); // this depends on where the fetched post data is stored in your state
   //console.log(post);
   const likesCount = post ? post.likesCount : 0;
@@ -94,6 +95,7 @@ const SingleView = ({ postcard, userId, postId }) => {
         //console.log(`Existing comments received: `, ...existingComments);
         setComments(existingComments);
       });
+      
       console.log("list ins comme", comments);
     }
     
@@ -117,7 +119,7 @@ const SingleView = ({ postcard, userId, postId }) => {
 
   // function to handle new comment submission
   const handleNewComment = (event) => {
-    console.log("posted a comment ..", currentUser.uid);
+    console.log("posted a comment ..", currentUser);
     event.preventDefault();
     const newCommentData = {
       roomId: postId,
