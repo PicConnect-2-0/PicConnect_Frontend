@@ -95,6 +95,11 @@ const SingleView = ({ postcard, userId, postId }) => {
         //console.log(`Existing comments received: `, ...existingComments);
         setComments(existingComments);
       });
+
+      socket.on("deleteComment", async (data) => {
+        console.log(`deleted comment: ${data.commentId}`);
+        setComments((prevComments) => prevComments.filter(comment => comment.id !== data.commentId));
+      });
       
       console.log("list ins comme", comments);
     }
@@ -139,8 +144,11 @@ const SingleView = ({ postcard, userId, postId }) => {
   const handleDeleteComment = (event, commentId) => {
     event.preventDefault();
     console.log("deleting acomment")
-    socket.emit("deleteComment", commentId);
-    setComments((prevComments) => prevComments.filter(comment => comment.id !== commentId));
+    const data = {
+      roomId: postId,
+      commentId: commentId,
+    };
+    socket.emit("deleteComment", data);
     console.log(`the comment with id: ${commentId} was deleted`);
   };
   // function to handle  deletion of comments
