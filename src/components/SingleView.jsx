@@ -83,10 +83,26 @@ const SingleView = ({ postcard, userId, postId }) => {
         setComments((oldComments) => [...oldComments, newComment]);
       });
 
-      //event listener for incoming comments
+      // Event listener for incoming comments and replies
       socket.on("newReply", (newReply) => {
         console.log(`New reply received: ${newReply}`);
-        setComments((oldReply) => [...oldReply, newReply]);
+
+        setComments((oldComments) => {
+          // Find the comment with the particular ID
+          const updatedComments = oldComments.map((comment) => {
+            if (comment.id === newReply.commentId) {
+              // Add the new reply to the comment's replies array
+              return {
+                ...comment,
+                replies: [...comment.replies, newReply],
+              };
+            } else {
+              return comment;
+            }
+          });
+
+          return updatedComments;
+        });
       });
 
       //event listener for existing comments
@@ -95,12 +111,34 @@ const SingleView = ({ postcard, userId, postId }) => {
         //console.log(`Existing comments received: `, ...existingComments);
         setComments(existingComments);
       });
-
       socket.on("deleteComment", async (data) => {
         console.log(`deleted comment: ${data.commentId}`);
         setComments((prevComments) => prevComments.filter(comment => comment.id !== data.commentId));
       });
-      
+
+      socket.on("deleteReply", async (data) => {
+        const {id,  commentId} = data;
+        console.log(`Deleted reply with ID ${id} in comment ${commentId}`);
+
+        setComments((prevComments) => {
+          // Find the comment with the specified ID
+          const updatedComments = prevComments.map((comment) => {
+            if (comment.id === commentId) {
+              // Filter out the reply with the specified ID from the comment's replies array
+              return {
+                ...comment,
+                replies: comment.replies.filter(reply => reply.id !== id)
+              };
+            } else {
+              return comment;
+            }
+          });
+
+          return updatedComments;
+        });
+      });
+
+
       console.log("list ins comme", comments);
     }
     
@@ -154,8 +192,12 @@ const SingleView = ({ postcard, userId, postId }) => {
   // function to handle  deletion of comments
   const handleDeleteReply = (event, replyId) => {
     event.preventDefault();
-    socket.emit("deleteReply", replyId);
-    console.log(`the comment with id: ${replyId} was deleted`);
+    const data = {
+      roomId: postId,
+      replyId: replyId,
+    };
+    socket.emit("deleteReply", data);
+    console.log(`the reply with id: ${replyId} was deleted`);
   };
 
   // function to handle new reply submission
@@ -165,9 +207,10 @@ const SingleView = ({ postcard, userId, postId }) => {
     console.log("posted a comment ..", currentReply);
     // Create the newReplyData object with relevant information
     const newReplyData = {
-      roomId: commentId, // Set the roomId to the commentId
+      roomId: postId, // Set the roomId to the commentId
       reply: currentReply, // Get the reply from the currentReply state variable
       userId: currentUser?.uid, // Get the userId (if available, using optional chaining)
+      commentId: commentId
     };
 
     // Emit the "newReply" event to the socket server with newReplyData
