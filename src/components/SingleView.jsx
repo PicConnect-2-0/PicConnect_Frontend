@@ -278,7 +278,7 @@ const SingleView = ({ postcard, userId, postId }) => {
 
                       <div className="flex flex-col justify-center mt-7 md:mt-8 lg:mt-0 pb-8 lg:pb-0">
                         {/* <p className="leftCentered">Author: {postcard.user?.name}</p> */}
-                        <p className="text-base leading-normal text-gray-600 dark:text-white mt-2">
+                        <div className="text-base leading-normal text-gray-600 dark:text-white mt-2">
                           <div className="flex items-start space-x-4">
                             <div onClick={navigateToProfile}>
                               <img
@@ -292,7 +292,7 @@ const SingleView = ({ postcard, userId, postId }) => {
                               <span className="">{postcard.user?.name}</span>
                             </div>
                           </div>
-                        </p>
+                        </div>
 
                         <p className="leftCentered text-base leading-normal text-gray-600 dark:text-white mt-2">
                           {allTags.map((tag, index) => (
