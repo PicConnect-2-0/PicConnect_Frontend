@@ -6,7 +6,7 @@ const SingleFollowingComponent = ({data, currentUserId, fetchFollowingList}) => 
   const unfollow = (() => {
     if(data){
       try {
-        axios.delete(`http://localhost:8000/api/users/${followingUserId}/deleteFollower/${currentUserId}`)
+        axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/users/${followingUserId}/deleteFollower/${currentUserId}`)
         .then(() => {
           fetchFollowingList();
         }).catch(() => {

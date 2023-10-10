@@ -4,11 +4,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CommentList from "../Comments/CommentList";
 import "../../styles/comments.css"
 import ReplyForm from './ReplyForm';
+import { auth } from '../../firebase/firebase';
 
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {dateStyle: "medium", timeStyle: "short"});
-export default function Comment({currentUserId, message, user, createdAt, replies, currentReply, handleReplyChange, handleNewReply, commentId, handleDeleteComment, handleDeleteReply}) {
+export default function Comment({message, user, createdAt, replies, currentReply, handleReplyChange, handleNewReply, commentId, handleDeleteComment, handleDeleteReply}) {
   const childComment = replies;
+  const currentUser = auth.currentUser;
   const [areChildrenHidden, setAreChildrenHidden] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const deleteComment = (event) => {
@@ -24,7 +26,7 @@ export default function Comment({currentUserId, message, user, createdAt, replie
         <div style={{display: "flex", alignItems: "flex-start", marginLeft: ".75rem", wordBreak: "break-all"}}>{message}</div>
         <div>
             <FontAwesomeIcon onClick={() => setIsReplying(prev => !prev)} icon={faReply} style={{marginRight: ".85rem", color: "blue"}}></FontAwesomeIcon>
-            {currentUserId === user?.id? <FontAwesomeIcon icon={faTrash} style={{color: "red"}} onClick={deleteComment}></FontAwesomeIcon>: <div></div>}
+            {currentUser?.uid === user?.id? <FontAwesomeIcon icon={faTrash} style={{color: "red"}} onClick={deleteComment}></FontAwesomeIcon>: <div></div>}
         </div>
     </div>
     {

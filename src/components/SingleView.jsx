@@ -7,6 +7,7 @@ import { useIfNotAuthenticated } from "../hooks/useIfNotAuthenticated";
 import TomTomMap from "./TomTomMap";
 import CommentList from "./Comments/CommentList";
 import CommentForm from "./Comments/CommentForm";
+import { auth } from "../firebase/firebase";
 
 let socket = null;
 
@@ -16,7 +17,7 @@ const SingleView = ({ postcard, userId, postId }) => {
   const [loop, setLoop] = useState(0);
   const slides = useRef([]);
   const slideSayisi = slides.current.length;
-  const currentUser = useSelector((state) => state.user.value);
+  const currentUser = auth.currentUser;
   const post = useSelector((state) => state.posts.currentPost); // this depends on where the fetched post data is stored in your state
   //console.log(post);
   const likesCount = post ? post.likesCount : 0;
@@ -40,8 +41,6 @@ const SingleView = ({ postcard, userId, postId }) => {
   const [currentComment, setCurrentComment] = useState(""); // state to hold current comment input
   const [loadingComment, setLoadinComment] = useState(true);
   const [currentReply, setCurrentReply] = useState("");
-  const [deletionOccured, setDeletionOccured] = useState(false);
-  const [parentCommentAdded, setparentCommentAdded] = useState(false);
 
   useEffect(() => {
     slides.current.forEach((slide, index) => {
@@ -84,27 +83,72 @@ const SingleView = ({ postcard, userId, postId }) => {
         setComments((oldComments) => [...oldComments, newComment]);
       });
 
-      //event listener for incoming comments
+      // Event listener for incoming comments and replies
       socket.on("newReply", (newReply) => {
         console.log(`New reply received: ${newReply}`);
-        setComments((oldReply) => [...oldReply, newReply]);
+
+        setComments((oldComments) => {
+          // Find the comment with the particular ID
+          const updatedComments = oldComments.map((comment) => {
+            if (comment.id === newReply.commentId) {
+              // Add the new reply to the comment's replies array
+              return {
+                ...comment,
+                replies: [...comment.replies, newReply],
+              };
+            } else {
+              return comment;
+            }
+          });
+
+          return updatedComments;
+        });
       });
 
       //event listener for existing comments
       socket.on("existingComments", (existingComments) => {
         setLoadinComment(false);
-        console.log(`Existing comments received: `, ...existingComments);
+        //console.log(`Existing comments received: `, ...existingComments);
         setComments(existingComments);
       });
+      socket.on("deleteComment", async (data) => {
+        console.log(`deleted comment: ${data.commentId}`);
+        setComments((prevComments) => prevComments.filter(comment => comment.id !== data.commentId));
+      });
+
+      socket.on("deleteReply", async (data) => {
+        const {id,  commentId} = data;
+        console.log(`Deleted reply with ID ${id} in comment ${commentId}`);
+
+        setComments((prevComments) => {
+          // Find the comment with the specified ID
+          const updatedComments = prevComments.map((comment) => {
+            if (comment.id === commentId) {
+              // Filter out the reply with the specified ID from the comment's replies array
+              return {
+                ...comment,
+                replies: comment.replies.filter(reply => reply.id !== id)
+              };
+            } else {
+              return comment;
+            }
+          });
+
+          return updatedComments;
+        });
+      });
+
+
       console.log("list ins comme", comments);
     }
+    
 
     // return () => {
     //   console.log("Disconnecting socket...");
     //   socket.off('newComment'); // Remove the event listener
     //   socket.disconnect(); // Disconnect the socket
     // }
-  }, [postId, currentReply, deletionOccured, parentCommentAdded]);
+  }, []);
 
   const RedirectMessage = useIfNotAuthenticated("SingleView");
   if (RedirectMessage) {
@@ -118,7 +162,7 @@ const SingleView = ({ postcard, userId, postId }) => {
 
   // function to handle new comment submission
   const handleNewComment = (event) => {
-    console.log("posted a comment ..", currentComment);
+    console.log("posted a comment ..", currentUser);
     event.preventDefault();
     const newCommentData = {
       roomId: postId,
@@ -128,7 +172,6 @@ const SingleView = ({ postcard, userId, postId }) => {
     socket.emit("newComment", newCommentData);
     console.log(`New comment submitted: ${JSON.stringify(newCommentData)}`);
     setCurrentComment(""); // clear the input field
-    setparentCommentAdded((prev) => !prev);
   };
 
   const handleCommentChange = (event) => {
@@ -138,16 +181,23 @@ const SingleView = ({ postcard, userId, postId }) => {
   // function to handle  deletion of comments
   const handleDeleteComment = (event, commentId) => {
     event.preventDefault();
-    socket.emit("deleteComment", commentId);
-    setDeletionOccured((prev) => !prev);
+    console.log("deleting acomment")
+    const data = {
+      roomId: postId,
+      commentId: commentId,
+    };
+    socket.emit("deleteComment", data);
     console.log(`the comment with id: ${commentId} was deleted`);
   };
   // function to handle  deletion of comments
   const handleDeleteReply = (event, replyId) => {
     event.preventDefault();
-    socket.emit("deleteReply", replyId);
-    setDeletionOccured((prev) => !prev);
-    console.log(`the comment with id: ${replyId} was deleted`);
+    const data = {
+      roomId: postId,
+      replyId: replyId,
+    };
+    socket.emit("deleteReply", data);
+    console.log(`the reply with id: ${replyId} was deleted`);
   };
 
   // function to handle new reply submission
@@ -157,9 +207,10 @@ const SingleView = ({ postcard, userId, postId }) => {
     console.log("posted a comment ..", currentReply);
     // Create the newReplyData object with relevant information
     const newReplyData = {
-      roomId: commentId, // Set the roomId to the commentId
+      roomId: postId, // Set the roomId to the commentId
       reply: currentReply, // Get the reply from the currentReply state variable
       userId: currentUser?.uid, // Get the userId (if available, using optional chaining)
+      commentId: commentId
     };
 
     // Emit the "newReply" event to the socket server with newReplyData
@@ -231,8 +282,9 @@ const SingleView = ({ postcard, userId, postId }) => {
                           <div className="flex items-start space-x-4">
                             <div onClick={navigateToProfile}>
                               <img
-                                src={postcard.user?.profilePicUrl}
+                                src={postcard.user?.profilePicUrl? postcard.user?.profilePicUrl : 'https://github.com/PicConnect-2-0/PicConnect_Frontend/assets/72886722/9b5ad788-80f6-4d97-94fd-5ea6a6fc56c8'}
                                 alt={postcard.user?.name}
+                                loading="lazy"
                                 className="w-7 h-7 rounded-full cursor-pointer"
                               />
                             </div>
